@@ -1,0 +1,39 @@
+# Секреты и личные данные — в репозиторий не попадают никогда
+.env
+.env.*
+!.env.example
+token.txt
+tokens.txt
+users.json
+registrations.json
+*.session
+*.session-journal
+
+# Логи и временные файлы
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# Редакторы и ОС
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini
+
+# Крупные медиафайлы
+*.mp4
+*.mov
+*.avi
+*.zip
