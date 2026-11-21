@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Telegram-бот: приводит присланную картинку к размеру 640x360.
+"""Telegram bot that returns any photo as a 640x360 (16:9) image.
 
-Что делает:
-  * принимает фото от пользователя;
-  * вписывает его в рамку 640x360 с сохранением пропорций;
-  * обрезает лишнее по центру (без растягивания и «сплющивания»);
-  * возвращает готовый PNG в ответ.
+What it does:
+  * takes a photo from the user;
+  * fits it into a 640x360 frame, keeping the proportions;
+  * crops the extra part from the center (no stretching, no squeezing);
+  * sends the result back as a PNG.
 
-Токен бота берётся из переменной окружения BOT_TOKEN — в коде секретов нет.
-Скопируйте .env.example в .env и впишите свой токен.
+There are no secrets in this file: the token comes from the BOT_TOKEN
+environment variable. Copy .env.example to .env and put your own token there.
+User-facing bot replies are in Russian; see start() and photo_handler().
 """
 
 import logging
@@ -32,11 +33,21 @@ logging.basicConfig(
 log = logging.getLogger("resize-img-bot")
 
 
-def resize_to_target(img: Image.Image) -> Image.Image:
-    """Вписать картинку в рамку 640x360 и обрезать лишнее по центру.
+def looks_like_bot_token(value: str) -> bool:
+    """Rough shape check for a Telegram bot token — digits, colon, long tail.
 
-    Пропорции сохраняются: картинка не растягивается. Если исходник шире
-    рамки — обрезаются бока, если выше — верх и низ.
+    Guards against pasting some other secret into BOT_TOKEN. The value itself
+    is never logged or printed anywhere.
+    """
+    head, _, tail = value.partition(":")
+    return head.isdigit() and len(head) >= 8 and len(tail) >= 30
+
+
+def resize_to_target(img: Image.Image) -> Image.Image:
+    """Fit the image into a 640x360 frame and crop the extra part from the center.
+
+    Proportions are kept: the image is never stretched. A source wider than the
+    frame loses its sides, a taller one loses its top and bottom.
     """
     img_ratio = img.width / img.height
     target_ratio = TARGET_WIDTH / TARGET_HEIGHT
@@ -84,8 +95,17 @@ def main() -> None:
     token = (os.getenv("BOT_TOKEN") or "").strip()
     if not token:
         raise SystemExit(
-            "Не задан BOT_TOKEN. Скопируйте .env.example в .env и впишите токен "
-            "от @BotFather — файл .env в репозиторий не попадает."
+            "BOT_TOKEN is not set. Copy .env.example to .env and put your own "
+            "token from @BotFather there — .env never goes to the repository.\n"
+            "BOT_TOKEN не задан: скопируйте .env.example в .env и впишите свой "
+            "токен — файл .env в репозиторий не попадает."
+        )
+    if not looks_like_bot_token(token):
+        raise SystemExit(
+            "BOT_TOKEN does not look like a Telegram bot token. Check .env. "
+            "The value is not printed here on purpose.\n"
+            "BOT_TOKEN не похож на токен Telegram — проверьте .env. "
+            "Само значение не печатается намеренно."
         )
 
     app = ApplicationBuilder().token(token).build()
